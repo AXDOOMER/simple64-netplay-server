@@ -297,12 +297,59 @@ void SocketServer::processBinaryMessage(QByteArray message)
     }
 }
 
+bool SocketServer::isObscenity(QString name)
+{
+    // Simple string checks
+    vector<QString> obcenities = {
+        "cum",
+        "is gay",
+        "penis",
+        "cunt",
+        "pussy",
+        "fuck",
+        "bitch",
+        "kike"
+    };
+
+    for (i = 0; i < obcenities.size(); ++i)
+    {
+        if (name.contains(obcenities[i], Qt::CaseInsensitive));
+        {
+            return true;
+        }
+    }
+
+    // Check special patterns
+    vector<QString> obcenitiesRx = {
+        "(n|/V).gg(a|.r)",
+        "ni.*gur",
+        "p(o|0)rn",
+        "s(e|3)men",
+        "(a|@)ss",
+        "r(a|@)p(e|3)",
+        "f(a|@)g",
+        "c(o|0)ck"
+    };
+
+    for (i = 0; i < obcenitiesRx.size(); ++i)
+    {
+        QRegularExpression rx(obcenitiesRx[i], QRegularExpression.CaseInsensitiveOption);
+
+        if (rx.indexIn(name) != -1)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 void SocketServer::createDiscord(QString room_name, QString game_name, int port, bool is_public)
 {
     QString type = is_public ? QStringLiteral("public") : QStringLiteral("private");
     QString message = "New " + type + " netplay room running in " + region + ": **" + room_name + "** has been created! Come play " + game_name;
     //Annouce room
-    if (is_public)
+    if (is_public && !isObscenity)
     {
         for (int i = 0; i < discord_channels.size(); ++i)
             announceDiscord(discord_channels.at(i), message);
